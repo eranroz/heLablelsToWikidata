@@ -18,7 +18,7 @@ transcluding_pages = enwiki_template.getReferences(follow_redirects=True, withTe
 entemplate_rgx = re.compile('\[\[([^]\[|]+?)\]\] *\{\{אנ\| *([^|]+?)\}\}')
 valid_namespace = [0, 14]
 english_to_hebrew_labels = ((english_label.replace('_', ' ').strip(), hebrew_label) for page in transcluding_pages
-                            if page.namespace() == valid_namespace
+                            if page.namespace() in valid_namespace
                             for hebrew_label, english_label in re.findall(entemplate_rgx, page.get()))
 
 i = 0
