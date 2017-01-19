@@ -6,26 +6,36 @@ CAUTION: It is based on heuristic. It is YOUR responsibility to make sure the ou
 """
 import re
 import pywikibot
+import pickle
 from pywikibot.tools import itergroup
 
 ensite = pywikibot.Site('en')
 data_repo = ensite.data_repository()
 data_repo.login()
-enwiki_template = pywikibot.Page(pywikibot.Site(), 'תבנית:אנ')
-transcluding_pages = enwiki_template.getReferences(follow_redirects=True, withTemplateInclusion=True,
-                                                   onlyTemplateInclusion=True, content=True)
+enwiki_templates = [pywikibot.Page(pywikibot.Site(), 'תבנית:אנ'), pywikibot.Page(pywikibot.Site(), 'תבנית:אנ')]
+valid_namespace = [0, 10, 14, 100]
+transcluding_pages = (p for entemp in enwiki_templates for p in entemp.getReferences(follow_redirects=True,
+                                                                                     withTemplateInclusion=True,
+                                                   onlyTemplateInclusion=True, content=True,
+                                                                                     namespaces=valid_namespace))
 
-entemplate_rgx = re.compile('\[\[([^]\[|]+?)\]\] *\{\{אנ\| *([^|]+?)\}\}')
-valid_namespace = [0, 14]
+entemplate_rgx = re.compile('\[\[([^]\[|]+?)\]\] *\{\{אנג?\|(?:1=)? *([^|]+?)\}\}')
+try:
+    with open('existing_labels.pkl', 'rb') as existing_backup:
+        existing_labels = pickle.load(existing_backup)
+except FileNotFoundError:
+    existing_labels = set()
 english_to_hebrew_labels = ((english_label.replace('_', ' ').strip(), hebrew_label) for page in transcluding_pages
-                            if page.namespace() in valid_namespace
-                            for hebrew_label, english_label in re.findall(entemplate_rgx, page.get()))
+                            for hebrew_label, english_label in re.findall(entemplate_rgx, page.get())
+                            if english_label not in existing_labels)
 
 i = 0
 for sublist in itergroup(english_to_hebrew_labels, 50):
     print('Query labels: %i' % i)
     i += 50
     eng_heb_dict = dict(sublist)
+    for en in eng_heb_dict.keys():
+        existing_labels.add(en)
     req = {'titles': '|'.join(eng_heb_dict.keys()),
            'sites': 'enwiki',
            'action': 'wbgetentities',
@@ -52,3 +62,4 @@ for sublist in itergroup(english_to_hebrew_labels, 50):
             'language': 'he',
             'token': data_repo.token(None, 'csrf')
         })).submit()
+pickle.dump(existing_labels, open('existing_labels.pkl', 'wb'))
