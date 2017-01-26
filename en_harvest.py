@@ -26,7 +26,7 @@ try:
 except FileNotFoundError:
     existing_labels = set()
 english_to_hebrew_labels = ((english_label.replace('_', ' ').strip(), hebrew_label) for page in transcluding_pages
-                            for hebrew_label, english_label in re.findall(entemplate_rgx, page.get())
+                            for hebrew_label, english_label in entemplate_rgx.findall(page.get())
                             if english_label not in existing_labels)
 
 i = 0
