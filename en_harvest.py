@@ -12,14 +12,14 @@ from pywikibot.tools import itergroup
 ensite = pywikibot.Site('en')
 data_repo = ensite.data_repository()
 data_repo.login()
-enwiki_templates = [pywikibot.Page(pywikibot.Site(), 'תבנית:אנ'), pywikibot.Page(pywikibot.Site(), 'תבנית:אנ')]
+enwiki_templates = [pywikibot.Page(pywikibot.Site(), 'תבנית:אנ'), pywikibot.Page(pywikibot.Site(), 'תבנית:אנג')]
 valid_namespace = [0, 10, 14, 100]
 transcluding_pages = (p for entemp in enwiki_templates for p in entemp.getReferences(follow_redirects=True,
                                                                                      withTemplateInclusion=True,
                                                    onlyTemplateInclusion=True, content=True,
                                                                                      namespaces=valid_namespace))
 
-entemplate_rgx = re.compile('\[\[([^]\[|]+?)\]\] *\{\{אנג?\|(?:1=)? *([^|]+?)\}\}')
+entemplate_rgx = re.compile('\[\[([^]\[|]+?)\]\] *\(?\{\{אנג?\|(?:1=)? *([^|]+?)\}\}')
 try:
     with open('existing_labels.pkl', 'rb') as existing_backup:
         existing_labels = pickle.load(existing_backup)
